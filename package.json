@@ -1,0 +1,15 @@
+{
+  "name": "delicias-da-jane",
+  "version": "1.0.0",
+  "description": "Delícias da Jane - Chup-Chups Gourmet & Sobremesas",
+  "private": true,
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3000 --open",
+    "start": "vite --host 0.0.0.0 --port 3000 --open",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 3000"
+  },
+  "devDependencies": {
+    "vite": "^5.4.14"
+  }
+}

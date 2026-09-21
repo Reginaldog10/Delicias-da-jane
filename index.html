@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Delícias da Jane | Chup-Chups Gourmet & Sobremesas</title>
+  <meta name="description" content="Peça os melhores Chup-Chups Gourmet, Sobremesas no Pote e Doces Artesanais da cidade. Entrega rápida via WhatsApp!">
+  <meta name="theme-color" content="#C8102E">
+  
+  <!-- CSS Principal -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍦</text></svg>">
+</head>
+<body>
+
+  <!-- Layout Principal -->
+  <div id="main-layout">
+
+    <!-- SIDEBAR DESKTOP (Aparece apenas em telas >= 1024px) -->
+    <aside class="desktop-sidebar" id="desktop-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="logo-badge" id="desktop-logo-trigger" title="Toque 5x para Admin">
+            <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=120&q=80" alt="Delícias da Jane">
+          </div>
+          <div class="sidebar-brand-text">
+            <h2>Delícias da Jane</h2>
+            <div class="brand-status-tag">
+              <span class="status-dot"></span>
+              <span>Aberto agora</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" onclick="App.toggleSidebar()" title="Recolher menu" aria-label="Alternar menu">
+          <svg class="toggle-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="sidebar-nav-item active" onclick="App.selectSidebarItem(this); App.resetFilters(); window.scrollTo({top: 0, behavior: 'smooth'});" data-title="Início" title="Início">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Início</span>
+        </button>
+        <button class="sidebar-nav-item" onclick="App.selectSidebarItem(this); App.filterByCategory('todos'); document.getElementById('products-section').scrollIntoView({behavior: 'smooth'})" data-title="Cardápio" title="Cardápio">
+          <span class="nav-icon">🍧</span>
+          <span class="nav-label">Cardápio</span>
+        </button>
+        <button class="sidebar-nav-item" onclick="App.selectSidebarItem(this); App.filterByCategory('Combos & Kits')" data-title="Combos" title="Combos">
+          <span class="nav-icon">🎁</span>
+          <span class="nav-label">Combos</span>
+        </button>
+        <button class="sidebar-nav-item" onclick="App.selectSidebarItem(this); App.filterByCategory('Sobremesas no Pote')" data-title="Sobremesas" title="Sobremesas">
+          <span class="nav-icon">🍰</span>
+          <span class="nav-label">Sobremesas</span>
+        </button>
+        <button class="sidebar-nav-item" onclick="App.selectSidebarItem(this); App.filterByCategory('Linha Fit & Zero')" data-title="Linha Fit" title="Linha Fit">
+          <span class="nav-icon">🍓</span>
+          <span class="nav-label">Linha Fit</span>
+        </button>
+        <button class="sidebar-nav-item" onclick="App.selectSidebarItem(this); App.filterByCategory('Bebidas Refrescantes')" data-title="Bebidas" title="Bebidas">
+          <span class="nav-icon">🥤</span>
+          <span class="nav-label">Bebidas</span>
+        </button>
+        <button class="sidebar-nav-item" onclick="App.showToast('Avaliações: ⭐⭐⭐⭐⭐ 4.9/5 (184 avaliações)')" data-title="Avaliações" title="Avaliações">
+          <span class="nav-icon">⭐</span>
+          <span class="nav-label">Avaliações</span>
+        </button>
+        <button class="sidebar-nav-item" onclick="App.showAboutModal()" data-title="Sobre nós" title="Sobre nós">
+          <span class="nav-icon">ℹ️</span>
+          <span class="nav-label">Sobre nós</span>
+        </button>
+
+        <button class="sidebar-nav-item admin-nav-btn" onclick="Admin.openPinModal()" data-title="Painel Admin" title="Acessar Painel Administrativo">
+          <span class="nav-icon">🔐</span>
+          <span class="nav-label">Painel Admin</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Conteúdo Principal / Container Mobile & Desktop -->
+    <main id="app-container">
+
+      <!-- TOP HEADER DESKTOP (Aparece apenas em >= 1024px) -->
+      <header class="desktop-top-header">
+        <div class="desktop-features-tags">
+          <span class="feat-tag">🧭 Navegação Intuitiva</span>
+          <span class="feat-tag">✨ Design Moderno</span>
+          <span class="feat-tag">📈 Mais vendas para o seu negócio</span>
+        </div>
+
+        <div class="desktop-top-actions">
+          <div class="desktop-search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="desktop-search-input" class="search-input" placeholder="Buscar produtos..." autocomplete="off">
+          </div>
+          <button class="icon-btn-desktop admin-shortcut-btn" onclick="Admin.openPinModal()" title="Acessar Painel Administrativo">
+            🔐
+          </button>
+          <button class="icon-btn-desktop" onclick="App.showToast('Você tem 1 cupom de boas-vindas disponível! 🎁')" title="Notificações">
+            🔔
+            <span class="icon-badge"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- TOP HEADER MOBILE (Aparece em telas < 1024px) -->
+      <header class="top-header mobile-only">
+        <div class="header-top-row">
+          <div class="brand-wrapper">
+            <!-- Logo Secreta com Gatilho do Admin (5 toques ou 3s hold) -->
+            <div class="logo-badge" id="store-logo-trigger" title="Toque 5x para Admin">
+              <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=120&q=80" alt="Delícias da Jane">
+            </div>
+            <div class="brand-text">
+              <h1 id="header-store-name">Delícias da Jane</h1>
+              <div class="brand-status-tag">
+                <span class="status-dot" id="header-status-dot"></span>
+                <span id="header-status-text">Aberto agora</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="header-actions">
+            <button class="icon-btn admin-shortcut-btn" onclick="Admin.openPinModal()" title="Painel Admin">
+              🔐
+            </button>
+            <button class="icon-btn" onclick="App.showToast('Você tem 1 cupom de boas-vindas disponível! 🎁')" title="Notificações">
+              🔔
+              <span class="icon-badge"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Barra de Busca Integrada -->
+        <div class="search-box-header">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" class="search-input" placeholder="Buscar produtos..." autocomplete="off">
+          <button id="search-clear-btn" class="search-clear-btn" title="Limpar busca">✕</button>
+        </div>
+      </header>
+
+      <!-- Banner de Alerta (Loja Fechada) -->
+      <div id="store-status-banner" class="hidden" style="background:#FFF3CD; color:#856404; padding:10px 16px; font-size:0.82rem; text-align:center; border-bottom:1px solid #FFEEBA;"></div>
+
+      <!-- 2. Carrossel Promocional em Destaque -->
+      <section class="banner-section">
+        <div class="banner-carousel-container">
+          <div class="banner-track" id="banner-track">
+            <!-- Slides gerados via JS -->
+          </div>
+          <div class="banner-dots" id="banner-dots">
+            <!-- Indicadores de slide -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Carrossel de Categorias Circulares -->
+      <section class="categories-section">
+        <div class="section-header">
+          <h2 class="section-title">✨ Categorias</h2>
+          <span class="section-count" style="color:var(--primary); font-weight:700; cursor:pointer;" onclick="App.filterByCategory('todos')">Ver todas</span>
+        </div>
+        <div class="categories-carousel" id="categories-carousel">
+          <!-- Itens de categoria gerados via JS -->
+        </div>
+      </section>
+
+      <!-- 4. Grid de Produtos (2 Colunas Mobile / 4 Colunas Desktop) -->
+      <section class="products-section" id="products-section">
+        <div class="section-header">
+          <h2 class="section-title" id="products-section-title">🍦 Chup-Chups em Destaque</h2>
+          <span class="section-count" id="products-count">Carregando...</span>
+        </div>
+        <div class="products-grid" id="products-grid">
+          <!-- Cards de produtos gerados via JS -->
+        </div>
+      </section>
+
+      <!-- Carrinho Flutuante Desktop (Exibido no lado direito do catálogo em telas >= 1024px) -->
+      <aside class="desktop-floating-cart" id="desktop-floating-cart" onclick="App.openCartDrawer()" title="Ver minha sacola">
+        <div class="floating-cart-icon-wrap">
+          <span class="floating-cart-icon">🛒</span>
+          <span class="cart-counter-badge floating-cart-badge" id="desktop-floating-badge" style="display:none;">0</span>
+        </div>
+        <div class="floating-cart-info">
+          <span class="floating-cart-title">Ver Sacola</span>
+          <span class="floating-cart-total" id="desktop-floating-total">R$ 0,00</span>
+        </div>
+        <span class="floating-cart-arrow">›</span>
+      </aside>
+
+      <!-- 5. Bottom Navigation Bar Fixa (Apenas Mobile) -->
+      <nav class="bottom-nav mobile-only">
+      <button class="nav-item active" onclick="App.resetFilters(); window.scrollTo({top: 0, behavior: 'smooth'});">
+        <span class="nav-icon">🏠</span>
+        <span>Início</span>
+      </button>
+
+      <button class="nav-item" onclick="document.getElementById('products-section').scrollIntoView({behavior: 'smooth'})">
+        <span class="nav-icon">🍧</span>
+        <span>Cardápio</span>
+      </button>
+
+      <!-- Botão Central Flutuante da Sacola -->
+      <button class="nav-cart-btn" onclick="App.openCartDrawer()" title="Abrir Sacola">
+        <div class="nav-cart-circle">
+          🛒
+          <span class="cart-counter-badge" style="display:none;">0</span>
+        </div>
+        <span class="nav-cart-label">Sacola</span>
+      </button>
+
+      <button class="nav-item" onclick="App.handleBannerClick('', 'Combos & Kits')">
+        <span class="nav-icon">🏷️</span>
+        <span>Combos</span>
+      </button>
+
+      <button class="nav-item" onclick="App.openCartDrawer()">
+        <span class="nav-icon">👤</span>
+        <span>Perfil</span>
+      </button>
+      </nav>
+    </main>
+  </div>
+
+  <!-- =========================================================================
+       DRAWER / MODAL DA SACOLA DE COMPRAS (CHECKOUT)
+       ========================================================================= -->
+  <div class="cart-drawer-backdrop" id="cart-drawer-backdrop">
+    <div class="cart-drawer">
+      <div class="cart-drawer-header">
+        <div class="cart-drawer-title">
+          <span>🛍️ Minha Sacola</span>
+        </div>
+        <button class="cart-close-btn" onclick="App.closeCartDrawer()">✕</button>
+      </div>
+
+      <div class="cart-body" id="cart-drawer-body">
+        <!-- Conteúdo do carrinho e formulário de entrega via JS -->
+      </div>
+
+      <div class="cart-drawer-footer" id="cart-drawer-footer">
+        <div class="summary-line">
+          <span>Subtotal dos itens:</span>
+          <span id="summary-subtotal">R$ 0,00</span>
+        </div>
+        <div class="summary-line">
+          <span>Taxa de Entrega:</span>
+          <span id="summary-taxa">R$ 5,00</span>
+        </div>
+        <div class="summary-line total">
+          <span>Total a Pagar:</span>
+          <span class="total-price" id="summary-total">R$ 0,00</span>
+        </div>
+        <button class="btn-checkout-whatsapp" onclick="App.finalizeOrder()">
+          <span>💬 Enviar Pedido no WhatsApp</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL DE DETALHES DO PRODUTO
+       ========================================================================= -->
+  <div class="modal-backdrop" id="product-detail-modal">
+    <div class="modal-card">
+      <div class="modal-img-wrap">
+        <img id="modal-prod-img" src="" alt="Produto">
+        <button class="modal-close-icon" onclick="App.closeProductModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <span class="modal-category-badge" id="modal-prod-category">Categoria</span>
+        <h2 class="modal-title" id="modal-prod-title">Nome do Produto</h2>
+        <p class="modal-description" id="modal-prod-desc">Descrição completa do item artesanal.</p>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label">Alguma observação ou preferência?</label>
+          <input type="text" id="modal-obs-input" class="form-input" placeholder="Ex: Enviar bem gelado, sem colher...">
+        </div>
+
+        <div class="modal-qty-row">
+          <div class="cart-item-actions">
+            <button class="qty-btn" onclick="App.adjustModalQty(-1)">-</button>
+            <span class="qty-value" id="modal-qty-val">1</span>
+            <button class="qty-btn" onclick="App.adjustModalQty(1)">+</button>
+          </div>
+          <div class="modal-price-big" id="modal-prod-price">R$ 0,00</div>
+        </div>
+
+        <button class="btn-confirm-add" id="modal-confirm-btn" onclick="App.confirmModalAddToCart()">
+          Adicionar à Sacola
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL DE AUTENTICAÇÃO DO ADMIN (PIN SECRETO)
+       ========================================================================= -->
+  <div class="modal-backdrop" id="admin-pin-modal">
+    <div class="pin-modal-card">
+      <div class="pin-icon-wrap">🔐</div>
+      <h3 class="pin-title">Acesso Restrito</h3>
+      <p class="pin-subtitle">Digite a senha de 4 dígitos do proprietário</p>
+
+      <div class="pin-dots-display">
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+      </div>
+
+      <div class="pin-keypad">
+        <button class="keypad-btn" data-num="1">1</button>
+        <button class="keypad-btn" data-num="2">2</button>
+        <button class="keypad-btn" data-num="3">3</button>
+        <button class="keypad-btn" data-num="4">4</button>
+        <button class="keypad-btn" data-num="5">5</button>
+        <button class="keypad-btn" data-num="6">6</button>
+        <button class="keypad-btn" data-num="7">7</button>
+        <button class="keypad-btn" data-num="8">8</button>
+        <button class="keypad-btn" data-num="9">9</button>
+        <button class="keypad-btn action" id="pin-cancel-btn">✕</button>
+        <button class="keypad-btn" data-num="0">0</button>
+        <button class="keypad-btn action" id="pin-clear-btn">⌫</button>
+      </div>
+      <button class="btn-quick-admin-login" onclick="Admin.quickUnlock()">
+        ⚡ Acessar com Senha Padrão (1234)
+      </button>
+      <div style="margin-top:10px; font-size:0.72rem; color:#71717A;">
+        (Senha padrão: <strong>1234</strong>)
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PAINEL ADMINISTRATIVO (DARK THEME COMPLETO)
+       ========================================================================= -->
+  <div id="admin-panel">
+    <header class="admin-header">
+      <div class="admin-brand">
+        <span style="font-size:22px;">🍨</span>
+        <div class="admin-title">Painel Administrativo</div>
+        <span class="admin-badge">GESTOR</span>
+      </div>
+      <button class="admin-exit-btn" id="admin-exit-btn">
+        <span>Sair do Admin</span> ✕
+      </button>
+    </header>
+
+    <nav class="admin-tabs-nav">
+      <button class="admin-tab-btn active" data-view="dashboard">📊 Dashboard</button>
+      <button class="admin-tab-btn" data-view="pedidos">📋 Pedidos em Tempo Real</button>
+      <button class="admin-tab-btn" data-view="produtos">🍦 Produtos & Estoque</button>
+      <button class="admin-tab-btn" data-view="clientes">👥 Clientes</button>
+      <button class="admin-tab-btn" data-view="config">⚙️ Configurações & Sheets</button>
+    </nav>
+
+    <div class="admin-view-content">
+
+      <!-- 1. ABA DASHBOARD -->
+      <div id="admin-view-dashboard" class="admin-view-section">
+        <!-- Status de Abertura da Loja -->
+        <div class="store-status-card">
+          <div>
+            <div class="store-status-title">Status do Cardápio</div>
+            <div class="store-status-desc">Permitir novos pedidos de clientes agora</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="admin-store-open-toggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Grade de Métricas -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>Faturamento Hoje</span>
+              <span>💰</span>
+            </div>
+            <div class="metric-value" id="metric-fat-hoje">R$ 0,00</div>
+            <div class="metric-subtitle">Vendas do dia</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>Pedidos Hoje</span>
+              <span>📦</span>
+            </div>
+            <div class="metric-value" id="metric-ped-hoje">0</div>
+            <div class="metric-subtitle">Solicitações recebidas</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>Faturamento Total</span>
+              <span>📈</span>
+            </div>
+            <div class="metric-value" id="metric-fat-total">R$ 0,00</div>
+            <div class="metric-subtitle">Histórico geral</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>Total Pedidos</span>
+              <span>🛍️</span>
+            </div>
+            <div class="metric-value" id="metric-ped-total">0</div>
+            <div class="metric-subtitle">Base de clientes</div>
+          </div>
+        </div>
+
+        <!-- Top 3 Produtos Mais Vendidos -->
+        <div class="sheets-sync-card">
+          <div style="font-family:var(--font-heading); font-size:1.05rem; font-weight:800; color:#FFFFFF; margin-bottom:12px;">
+            🏆 Top Produtos Mais Vendidos
+          </div>
+          <div id="top-products-list">
+            <!-- Gerado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. ABA PEDIDOS EM TEMPO REAL (KANBAN) -->
+      <div id="admin-view-pedidos" class="admin-view-section hidden">
+        <div class="orders-filter-bar">
+          <button class="order-filter-chip active" data-status="TODOS" onclick="Admin.filterOrdersByStatus('TODOS')">Todos</button>
+          <button class="order-filter-chip" data-status="NOVO" onclick="Admin.filterOrdersByStatus('NOVO')">Novos 🔵</button>
+          <button class="order-filter-chip" data-status="EM PREPARO" onclick="Admin.filterOrdersByStatus('EM PREPARO')">Em Preparo 🟡</button>
+          <button class="order-filter-chip" data-status="SAIU PARA ENTREGA" onclick="Admin.filterOrdersByStatus('SAIU PARA ENTREGA')">A Caminho 🟣</button>
+          <button class="order-filter-chip" data-status="CONCLUIDO" onclick="Admin.filterOrdersByStatus('CONCLUIDO')">Concluídos 🟢</button>
+          <button class="order-filter-chip" data-status="CANCELADO" onclick="Admin.filterOrdersByStatus('CANCELADO')">Cancelados 🔴</button>
+        </div>
+
+        <div id="admin-orders-list">
+          <!-- Cards de pedidos gerados via JS -->
+        </div>
+      </div>
+
+      <!-- 3. ABA PRODUTOS & GESTÃO DE ESTOQUE -->
+      <div id="admin-view-produtos" class="admin-view-section hidden">
+        <div class="admin-toolbar-row">
+          <button class="btn-add-product-main" onclick="Admin.openNewProductModal()">
+            <span>+ Adicionar Novo Chup-Chup / Sobremesa</span>
+          </button>
+        </div>
+
+        <div class="admin-search-box-row">
+          <div class="admin-search-box">
+            <span>🔍</span>
+            <input type="text" id="admin-prod-search" placeholder="Buscar por sabor ou categoria..." oninput="Admin.filterProducts()">
+          </div>
+          <div class="orders-filter-bar" style="margin: 0;">
+            <button class="order-filter-chip active" data-stock-filter="TODOS" onclick="Admin.filterProductsByStock('TODOS')">Todos</button>
+            <button class="order-filter-chip" data-stock-filter="ATIVOS" onclick="Admin.filterProductsByStock('ATIVOS')">Ativos ✅</button>
+            <button class="order-filter-chip" data-stock-filter="ESGOTADOS" onclick="Admin.filterProductsByStock('ESGOTADOS')">Esgotados 🚫</button>
+            <button class="order-filter-chip" data-stock-filter="INATIVOS" onclick="Admin.filterProductsByStock('INATIVOS')">Ocultos ❌</button>
+          </div>
+        </div>
+
+        <div id="admin-products-list">
+          <!-- Lista de produtos gerada via JS -->
+        </div>
+      </div>
+
+      <!-- 4. ABA CLIENTES CADASTRADOS & HISTÓRICO -->
+      <div id="admin-view-clientes" class="admin-view-section hidden">
+        <div class="admin-toolbar-row">
+          <button class="btn-add-product-main" onclick="Admin.openNewClientModal()">
+            <span>+ Cadastrar Novo Cliente</span>
+          </button>
+        </div>
+
+        <div class="admin-search-box-row">
+          <div class="admin-search-box" style="flex:1;">
+            <span>🔍</span>
+            <input type="text" id="admin-client-search" placeholder="Buscar cliente por nome, telefone ou bairro..." oninput="Admin.filterClients()">
+          </div>
+          <div class="clients-stat-badge" id="admin-clients-count">0 clientes</div>
+        </div>
+
+        <div id="admin-clients-list">
+          <!-- Lista de clientes gerada via JS -->
+        </div>
+      </div>
+
+      <!-- 4. ABA GOOGLE SHEETS & CONFIGURAÇÕES -->
+      <div id="admin-view-config" class="admin-view-section hidden">
+        <!-- Card de Conexão com Google Sheets -->
+        <div class="sheets-sync-card">
+          <div class="sheets-sync-title">
+            <span>📊 Integração Google Sheets (Backend)</span>
+          </div>
+          <p style="font-size:0.82rem; color:var(--admin-muted); margin-bottom:12px;">
+            Conecte seu cardápio a uma planilha Google Sheets para gerenciar produtos, clientes e pedidos em tempo real.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label" style="color:#FFF;">URL do Google Apps Script (Web App)</label>
+            <input type="url" id="cfg-sheets-url" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="https://script.google.com/macros/s/.../exec">
+          </div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+            <button class="banner-cta-btn" style="background:#10B981; color:#FFF;" onclick="Admin.testSheetsSync()">
+              ⚡ Sincronizar Agora com Planilha
+            </button>
+            <button class="banner-cta-btn" style="background:#333; color:#FFF;" onclick="Admin.copyAppsScriptCode()">
+              📋 Instruções & Código do Apps Script
+            </button>
+          </div>
+
+          <div class="sheets-code-box">
+📄 O arquivo 'google-sheets-script.js' já foi gerado na raiz deste projeto!
+Basta abrir o Google Sheets -> Extensões -> Apps Script -> Colar o código -> Implantar como Web App (Acesso: Qualquer pessoa) e colar a URL acima.
+          </div>
+        </div>
+
+        <!-- Ajustes Gerais da Loja -->
+        <div class="sheets-sync-card">
+          <div style="font-family:var(--font-heading); font-size:1.1rem; font-weight:800; color:#FFF; margin-bottom:14px;">
+            🏪 Dados do Estabelecimento
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="color:#FFF;">Nome da Loja</label>
+            <input type="text" id="cfg-nome-loja" class="form-input" style="background:#282828; color:#FFF; border-color:#444;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="color:#FFF;">WhatsApp de Recebimento de Pedidos (com DDD)</label>
+            <input type="text" id="cfg-whatsapp-loja" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Ex: 5511987654321">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" style="color:#FFF;">Taxa de Entrega Padrão (R$)</label>
+              <input type="number" step="0.50" id="cfg-taxa-entrega" class="form-input" style="background:#282828; color:#FFF; border-color:#444;">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="color:#FFF;">Tempo Médio de Entrega</label>
+              <input type="text" id="cfg-tempo-entrega" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Ex: 30-45 min">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="color:#FFF;">Chave Pix para Pagamentos</label>
+            <input type="text" id="cfg-chave-pix" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Ex: seu-email@pix.com.br ou celular">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="color:#FFF;">PIN de Acesso Secreto do Admin (4 Dígitos)</label>
+            <input type="password" maxlength="4" id="cfg-admin-pin" class="form-input" style="background:#282828; color:#FFF; border-color:#444;">
+          </div>
+
+          <button class="banner-cta-btn" style="width:100%; justify-content:center; margin-top:10px; background:var(--primary-gradient); color:#FFF;" onclick="Admin.saveGeneralSettings()">
+            💾 Salvar Configurações
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL DE CADASTRO / EDIÇÃO DE PRODUTO (CRUD)
+       ========================================================================= -->
+  <div class="modal-backdrop" id="admin-product-crud-modal">
+    <div class="modal-card" style="background:#1E1E1E; color:#FFF;">
+      <div class="cart-drawer-header" style="background:#1E1E1E; border-bottom:1px solid #333; position:relative;">
+        <h3 class="modal-title" id="prod-modal-title" style="color:#FFF;">Produto</h3>
+        <button class="modal-close-icon" style="background:#333; color:#FFF;" onclick="Admin.closeProductCrudModal()">✕</button>
+      </div>
+
+      <div class="modal-content" style="padding:16px 20px;">
+        <div class="form-group">
+          <label class="form-label" style="color:#A1A1AA;">Nome do Produto *</label>
+          <input type="text" id="form-prod-nome" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Ex: Chup-Chup Ninho Trufado">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" style="color:#A1A1AA;">Categoria</label>
+            <select id="form-prod-categoria" class="form-select" style="background:#282828; color:#FFF; border-color:#444;">
+              <option value="Chup-Chups Gourmet">Chup-Chups Gourmet</option>
+              <option value="Sobremesas no Pote">Sobremesas no Pote</option>
+              <option value="Combos & Kits">Combos & Kits</option>
+              <option value="Linha Fit & Zero">Linha Fit & Zero</option>
+              <option value="Bebidas Refrescantes">Bebidas Refrescantes</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="color:#A1A1AA;">Preço (R$) *</label>
+            <input type="number" step="0.01" min="0" id="form-prod-preco" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="6.50">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color:#A1A1AA;">URL da Imagem / Foto</label>
+          <input type="url" id="form-prod-foto" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="https://exemplo.com/foto.jpg">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color:#A1A1AA;">Descrição & Ingredientes</label>
+          <textarea id="form-prod-desc" class="form-textarea" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Descreva o sabor, ingredientes nobres..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" style="color:#A1A1AA;">Destaque no Topo?</label>
+            <select id="form-prod-destaque" class="form-select" style="background:#282828; color:#FFF; border-color:#444;">
+              <option value="NAO">Não</option>
+              <option value="SIM">Sim ⭐</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="color:#A1A1AA;">Visibilidade no Cardápio</label>
+            <select id="form-prod-status" class="form-select" style="background:#282828; color:#FFF; border-color:#444;">
+              <option value="ATIVO">Ativo (Visível para clientes)</option>
+              <option value="INATIVO">Inativo (Oculto do cardápio)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color:#A1A1AA;">Quantidade em Estoque (un.) *</label>
+          <input type="number" id="form-prod-estoque" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Ex: 20" min="0" value="15">
+          <small style="color:#71717A; font-size:0.72rem; margin-top:3px; display:block;">Quando o estoque chega a 0, o item fica marcado automaticamente como Esgotado e não permite novos pedidos.</small>
+        </div>
+
+        <button class="btn-confirm-add" style="margin-top:12px;" onclick="Admin.saveProductForm()">
+          Salvar Produto
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL DE CADASTRO / EDIÇÃO DE CLIENTE (CRUD)
+       ========================================================================= -->
+  <div class="modal-backdrop" id="admin-client-crud-modal">
+    <div class="modal-card" style="background:#1E1E1E; color:#FFF;">
+      <div class="cart-drawer-header" style="background:#1E1E1E; border-bottom:1px solid #333;">
+        <h3 class="modal-title" id="client-modal-title" style="color:#FFF;">Cliente</h3>
+        <button class="modal-close-icon" style="background:#333; color:#FFF;" onclick="Admin.closeClientCrudModal()">✕</button>
+      </div>
+
+      <div class="modal-content" style="padding:16px 20px;">
+        <div class="form-group">
+          <label class="form-label" style="color:#A1A1AA;">Nome Completo do Cliente *</label>
+          <input type="text" id="form-client-nome" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Ex: Ana Clara Silva">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color:#A1A1AA;">WhatsApp com DDD *</label>
+          <input type="tel" id="form-client-whatsapp" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Ex: 11999998888">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color:#A1A1AA;">Endereço de Entrega Completo</label>
+          <input type="text" id="form-client-endereco" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Rua das Palmeiras, 120 - Apto 42">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" style="color:#A1A1AA;">Bairro</label>
+            <input type="text" id="form-client-bairro" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Ex: Centro">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="color:#A1A1AA;">Cidade / Estado</label>
+            <input type="text" id="form-client-cidade" class="form-input" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Ex: São Paulo - SP">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color:#A1A1AA;">Observações / Notas do Cliente</label>
+          <textarea id="form-client-obs" class="form-textarea" style="background:#282828; color:#FFF; border-color:#444;" placeholder="Ex: Prefere receber à tarde, alérgico a nozes..."></textarea>
+        </div>
+
+        <button class="btn-confirm-add" style="margin-top:12px;" onclick="Admin.saveClientForm()">
+          Salvar Cliente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container Flutuante -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/sheets.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
