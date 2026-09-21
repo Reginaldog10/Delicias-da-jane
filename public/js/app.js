@@ -9,6 +9,7 @@ const App = {
   currentBannerIndex: 0,
   bannerTimer: null,
   activeProductModal: null,
+  isSyncing: false,
 
   init() {
     this.loadCartFromStorage();
@@ -21,6 +22,41 @@ const App = {
     this.startBannerAutoPlay();
     this.applyStoreStatus();
     this.initSidebar();
+
+    // Sincronização automática com a planilha Google Sheets ao iniciar
+    this.syncWithSheets(true);
+  },
+
+  // Sincronização com o Google Sheets em segundo plano ou acionada
+  async syncWithSheets(silent = false) {
+    if (this.isSyncing) return;
+    this.isSyncing = true;
+
+    const countEl = document.getElementById("products-count");
+    if (countEl && SheetsService.getProdutosAtivos().length === 0) {
+      countEl.textContent = "Sincronizando planilha...";
+    }
+
+    try {
+      await SheetsService.fetchAllFromSheets();
+      this.renderHeader();
+      this.renderBanners();
+      this.renderCategories();
+      this.renderProducts();
+      this.applyStoreStatus();
+      if (!silent) {
+        this.showToast("Cardápio sincronizado com a planilha! ✨", "success");
+      }
+    } catch (err) {
+      console.warn("Aviso ao sincronizar cardápio:", err);
+      if (!silent) {
+        this.showToast("Não foi possível atualizar da planilha no momento.", "error");
+      }
+      this.renderCategories();
+      this.renderProducts();
+    } finally {
+      this.isSyncing = false;
+    }
   },
 
   // Controle da Sidebar Desktop (Expansível / Reclinável)
@@ -108,41 +144,50 @@ const App = {
     }
   },
 
-  // Renderização do Carrossel de Banners
+  // Renderização do Carrossel de Banners Dinâmico da Planilha
   renderBanners() {
     const track = document.getElementById("banner-track");
     const dotsContainer = document.getElementById("banner-dots");
     if (!track || !dotsContainer) return;
 
-    const banners = [
-      {
-        tag: "🔥 MAIS PEDIDO",
-        title: "A MELHOR SOBREMESA DA CIDADE!",
-        desc: "Chup-chups gourmet artesanais super cremosos e recheados com pura Nutella.",
-        cta: "Pedir Ninho c/ Nutella",
-        prodId: "prod-1",
-        bgClass: "slide-1",
-        img: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=400&q=80"
-      },
-      {
-        tag: "🎁 COMBO FAMÍLIA",
-        title: "COMBO DEGUSTAÇÃO (5 UNID)",
-        desc: "Experimente os 5 sabores mais vendidos com embalagem térmica grátis!",
-        cta: "Garantir Combo por R$ 29,90",
-        prodId: "prod-9",
-        bgClass: "slide-2",
-        img: "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=400&q=80"
-      },
-      {
-        tag: "🍰 NOVIDADE",
-        title: "BOLOS NO POTE ESPECIAIS",
-        desc: "Red Velvet, Banoffee e Ninho Trufado com massa aveludada.",
-        cta: "Ver Sobremesas",
-        category: "Sobremesas no Pote",
-        bgClass: "slide-3",
-        img: "https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=400&q=80"
-      }
-    ];
+    const featuredProducts = SheetsService.getProdutosAtivos().filter(p => p.destaque === "SIM");
+    const allProducts = SheetsService.getProdutosAtivos();
+    const config = SheetsService.getConfiguracoes();
+    let banners = [];
+
+    if (featuredProducts.length > 0) {
+      banners = featuredProducts.slice(0, 4).map((p, idx) => ({
+        tag: idx === 0 ? "🔥 MAIS PEDIDO" : (idx === 1 ? "⭐ DESTAQUE" : "✨ ESPECIAL"),
+        title: p.nome.toUpperCase(),
+        desc: p.descricao || "Feito artesanalmente com ingredientes de alta cremosidade e qualidade.",
+        cta: `Pedir por R$ ${parseFloat(p.preco || 0).toFixed(2).replace('.', ',')}`,
+        prodId: p.id_produto,
+        bgClass: `slide-${(idx % 3) + 1}`,
+        img: p.foto_url
+      }));
+    } else if (allProducts.length > 0) {
+      banners = allProducts.slice(0, 3).map((p, idx) => ({
+        tag: "✨ NOVIDADE",
+        title: p.nome.toUpperCase(),
+        desc: p.descricao || "Confira este sabor irresistível do nosso cardápio!",
+        cta: `Ver Produto`,
+        prodId: p.id_produto,
+        bgClass: `slide-${(idx % 3) + 1}`,
+        img: p.foto_url
+      }));
+    } else {
+      banners = [
+        {
+          tag: "🍦 BEM-VINDO",
+          title: (config.nome_loja || "Delícias da Jane").toUpperCase(),
+          desc: "Cardápio artesanal conectado diretamente com a planilha Google Sheets.",
+          cta: "Conhecer Cardápio",
+          category: "todos",
+          bgClass: "slide-1",
+          img: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=400&q=80"
+        }
+      ];
+    }
 
     track.innerHTML = banners.map((b, idx) => `
       <div class="banner-slide ${b.bgClass}">
@@ -206,7 +251,24 @@ const App = {
     const container = document.getElementById("categories-carousel");
     if (!container) return;
 
-    const categories = SheetsService.getCategorias().filter(c => c.status === "ATIVO");
+    let categories = SheetsService.getCategorias().filter(c => c.status === "ATIVO");
+    const activeProducts = SheetsService.getProdutosAtivos();
+
+    // Auto-descoberta inteligente de categorias cadastradas nos produtos da planilha
+    const existingNames = new Set(categories.map(c => c.nome_categoria.toLowerCase().trim()));
+    activeProducts.forEach(p => {
+      const catName = (p.categoria || "").trim();
+      if (catName && !existingNames.has(catName.toLowerCase())) {
+        existingNames.add(catName.toLowerCase());
+        categories.push({
+          id_categoria: 'auto-' + catName.toLowerCase().replace(/\s+/g, '-'),
+          nome_categoria: catName,
+          status: 'ATIVO',
+          icone: SheetsService.getCategoryIconFallback(catName),
+          foto_url: SheetsService.getCategoryPhotoFallback(catName)
+        });
+      }
+    });
 
     let html = `
       <div class="category-item ${this.selectedCategory === 'todos' ? 'active' : ''}" onclick="App.filterByCategory('todos')">
@@ -218,7 +280,7 @@ const App = {
     `;
 
     categories.forEach(cat => {
-      const isActive = this.selectedCategory === cat.nome_categoria;
+      const isActive = this.selectedCategory.toLowerCase() === cat.nome_categoria.toLowerCase();
       html += `
         <div class="category-item ${isActive ? 'active' : ''}" onclick="App.filterByCategory('${cat.nome_categoria}')">
           <div class="category-avatar">
@@ -275,9 +337,13 @@ const App = {
       grid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-muted);">
           <div style="font-size: 48px; margin-bottom: 8px;">🍦</div>
-          <h3 style="font-family: var(--font-heading); color: var(--text-main); margin-bottom: 4px;">Nenhum item encontrado</h3>
-          <p style="font-size: 0.85rem;">Tente buscar por outro termo ou selecione outra categoria.</p>
-          <button class="banner-cta-btn" style="margin: 16px auto 0 auto;" onclick="App.resetFilters()">Ver todos os produtos</button>
+          <h3 style="font-family: var(--font-heading); color: var(--text-main); margin-bottom: 4px;">
+            ${this.isSyncing ? "Conectando à planilha..." : "Nenhum produto encontrado"}
+          </h3>
+          <p style="font-size: 0.85rem; max-width: 320px; margin: 0 auto;">
+            ${this.isSyncing ? "Buscando os produtos em tempo real do Google Sheets..." : (this.searchTerm || this.selectedCategory !== 'todos' ? 'Tente buscar por outro termo ou selecione outra categoria.' : 'Cadastre produtos na aba "Produtos" da sua planilha ou clique abaixo para atualizar.')}
+          </p>
+          ${!this.isSyncing ? `<button class="banner-cta-btn" style="margin: 16px auto 0 auto;" onclick="App.syncWithSheets()">🔄 Sincronizar da Planilha</button>` : ''}
         </div>
       `;
       return;

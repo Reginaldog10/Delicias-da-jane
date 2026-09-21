@@ -172,7 +172,10 @@
       <section class="products-section" id="products-section">
         <div class="section-header">
           <h2 class="section-title" id="products-section-title">🍦 Chup-Chups em Destaque</h2>
-          <span class="section-count" id="products-count">Carregando...</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="section-count" id="products-count">Carregando...</span>
+            <button onclick="App.syncWithSheets()" title="Sincronizar com o Google Sheets" style="background:none; border:none; cursor:pointer; font-size:1.1rem; line-height:1; padding:2px;" aria-label="Sincronizar">🔄</button>
+          </div>
         </div>
         <div class="products-grid" id="products-grid">
           <!-- Cards de produtos gerados via JS -->

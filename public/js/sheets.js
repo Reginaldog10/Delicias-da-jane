@@ -14,19 +14,30 @@ const SheetsService = {
     clienteAtivo: "delicias_jane_cliente_salvo"
   },
 
-  // Inicializa o banco de dados local com valores padrão se estiver vazio
+  // Inicializa o banco de dados local com valores vazios/padrão
   init() {
+    // Limpeza de cache de dados mocados antigos (prod-1, prod-2, etc.)
+    try {
+      const prodData = localStorage.getItem(this.storageKeys.produtos);
+      if (prodData && (prodData.includes("prod-1") || prodData.includes("Chup-Chup Paçoca Cremosa"))) {
+        localStorage.removeItem(this.storageKeys.produtos);
+        localStorage.removeItem(this.storageKeys.categorias);
+        localStorage.removeItem(this.storageKeys.pedidos);
+        localStorage.removeItem(this.storageKeys.clientes);
+      }
+    } catch (e) {}
+
     if (!localStorage.getItem(this.storageKeys.produtos)) {
-      localStorage.setItem(this.storageKeys.produtos, JSON.stringify(INITIAL_PRODUCTS));
+      localStorage.setItem(this.storageKeys.produtos, JSON.stringify([]));
     }
     if (!localStorage.getItem(this.storageKeys.categorias)) {
-      localStorage.setItem(this.storageKeys.categorias, JSON.stringify(INITIAL_CATEGORIES));
+      localStorage.setItem(this.storageKeys.categorias, JSON.stringify([]));
     }
     if (!localStorage.getItem(this.storageKeys.pedidos)) {
-      localStorage.setItem(this.storageKeys.pedidos, JSON.stringify(INITIAL_ORDERS));
+      localStorage.setItem(this.storageKeys.pedidos, JSON.stringify([]));
     }
     if (!localStorage.getItem(this.storageKeys.clientes)) {
-      localStorage.setItem(this.storageKeys.clientes, JSON.stringify(INITIAL_CLIENTS));
+      localStorage.setItem(this.storageKeys.clientes, JSON.stringify([]));
     }
     if (!localStorage.getItem(this.storageKeys.config)) {
       localStorage.setItem(this.storageKeys.config, JSON.stringify(INITIAL_CONFIG));
@@ -435,37 +446,76 @@ const SheetsService = {
       const { produtos, categorias, clientes, pedidos, configuracoes } = result.data;
 
       // Normalização Inteligente de Produtos (compatível com colunas em português e técnico)
-      if (produtos && produtos.length > 0) {
-        const normalizedProdutos = produtos.map((p, idx) => ({
-          id_produto: String(p.id_produto || p.ID || p.id || ('prod-' + (idx + 1))),
-          nome: p.nome || p.Nome || 'Chup-Chup Gourmet',
-          categoria: p.categoria || p.Categoria || 'Chup-Chups Gourmet',
-          descricao: p.descricao || p['Descrição'] || p.Descricao || '',
-          preco: parseFloat(String(p.preco || p['Preço'] || p.Preco || 0).replace(',', '.')) || 6.50,
-          foto_url: p.foto_url || p['URL Imagem'] || p.foto || 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80',
-          status: String(p.status || p.Status || 'ATIVO').toUpperCase().includes('ATIVO') ? 'ATIVO' : 'INATIVO',
-          destaque: String(p.destaque || p.Destaque || 'NAO').toUpperCase().includes('SIM') ? 'SIM' : 'NAO',
-          estoque: parseInt(p.estoque !== undefined ? p.estoque : (p.Estoque !== undefined ? p.Estoque : 15)) || 0,
-          data_cadastro: p.data_cadastro || p['Data Cadastro'] || new Date().toLocaleDateString('pt-BR')
-        }));
+      if (Array.isArray(produtos)) {
+        const normalizedProdutos = produtos
+          .filter(p => p && (p.nome || p.Nome || p.ID || p.id))
+          .map((p, idx) => {
+            const rawNome = (p.nome || p.Nome || p.ID || `Produto #${idx + 1}`).trim();
+            const rawCat = (p.categoria || p.Categoria || 'Chup-Chups Gourmet').trim();
+            const rawDesc = (p.descricao || p['Descrição'] || p.Descricao || '').trim();
+
+            // Preço limpo
+            const rawPreco = String(p.preco !== undefined ? p.preco : (p['Preço'] !== undefined ? p['Preço'] : (p.Preco || 0)))
+              .replace(/[^\d.,]/g, '')
+              .replace(',', '.');
+            const parsedPreco = parseFloat(rawPreco);
+            const preco = (!isNaN(parsedPreco) && parsedPreco >= 0) ? parsedPreco : 6.50;
+
+            // Foto com fallback visual atraente
+            const rawFoto = String(p.foto_url || p['URL Imagem'] || p.foto || '').trim();
+            const foto_url = (rawFoto.startsWith('http://') || rawFoto.startsWith('https://'))
+              ? rawFoto
+              : SheetsService.getProductPhotoFallback(rawNome, rawCat);
+
+            // Estoque
+            const rawEstoque = parseInt(p.estoque !== undefined ? p.estoque : (p.Estoque !== undefined ? p.Estoque : 10));
+            const estoque = !isNaN(rawEstoque) ? rawEstoque : 10;
+
+            const isAtivo = String(p.status || p.Status || 'ATIVO').toUpperCase().includes('INATIV') ? 'INATIVO' : 'ATIVO';
+            const isDestaque = String(p.destaque || p.Destaque || 'NAO').toUpperCase().includes('SIM') ? 'SIM' : 'NAO';
+
+            return {
+              id_produto: String(p.id_produto || p.ID || p.id || ('PROD-' + (idx + 1))),
+              nome: rawNome,
+              categoria: rawCat,
+              descricao: rawDesc,
+              preco: preco,
+              foto_url: foto_url,
+              status: isAtivo,
+              destaque: isDestaque,
+              estoque: estoque,
+              data_cadastro: p.data_cadastro || p['Data Cadastro'] || new Date().toLocaleDateString('pt-BR')
+            };
+          });
         localStorage.setItem(this.storageKeys.produtos, JSON.stringify(normalizedProdutos));
       }
 
       // Normalização Inteligente de Categorias
-      if (categorias && categorias.length > 0) {
-        const normalizedCategorias = categorias.map((c, idx) => ({
-          id_categoria: String(c.id_categoria || c.ID || c.id || ('cat-' + (idx + 1))),
-          nome_categoria: c.nome_categoria || c.Categoria || c.nome || 'Categoria',
-          ordem_exibicao: parseInt(c.ordem_exibicao) || (idx + 1),
-          status: String(c.status || c.Status || 'ATIVO').toUpperCase().includes('ATIVO') ? 'ATIVO' : 'INATIVO',
-          icone: c.icone || c.Icone || '🍦',
-          foto_url: c.foto_url || c['URL Imagem'] || 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=300&q=80'
-        }));
+      if (Array.isArray(categorias)) {
+        const normalizedCategorias = categorias
+          .filter(c => c && (c.nome_categoria || c.Categoria || c.nome || '').trim() !== '')
+          .map((c, idx) => {
+            const nomeCat = (c.nome_categoria || c.Categoria || c.nome || 'Categoria').trim();
+            const rawFoto = String(c.foto_url || c['URL Imagem'] || '').trim();
+            const fotoUrl = (rawFoto.startsWith('http://') || rawFoto.startsWith('https://'))
+              ? rawFoto
+              : SheetsService.getCategoryPhotoFallback(nomeCat);
+            const rawIcone = (c.icone || c.Icone || '').trim();
+
+            return {
+              id_categoria: String(c.id_categoria || c.ID || c.id || ('cat-' + (idx + 1))),
+              nome_categoria: nomeCat,
+              ordem_exibicao: parseInt(c.ordem_exibicao || c.Ordem || (idx + 1)) || (idx + 1),
+              status: String(c.status || c.Status || 'ATIVO').toUpperCase().includes('INATIV') ? 'INATIVO' : 'ATIVO',
+              icone: rawIcone || SheetsService.getCategoryIconFallback(nomeCat),
+              foto_url: fotoUrl
+            };
+          });
         localStorage.setItem(this.storageKeys.categorias, JSON.stringify(normalizedCategorias));
       }
 
       // Normalização Inteligente de Clientes
-      if (clientes && clientes.length > 0) {
+      if (Array.isArray(clientes)) {
         const normalizedClientes = clientes.map((c, idx) => ({
           id_cliente: String(c.id_cliente || c.ID || c.id || ('CLI-' + (idx + 1000))),
           nome: c.nome || c.Nome || 'Cliente',
@@ -482,7 +532,7 @@ const SheetsService = {
       }
 
       // Normalização Inteligente de Pedidos
-      if (pedidos && pedidos.length > 0) {
+      if (Array.isArray(pedidos)) {
         const normalizedPedidos = pedidos.map((o, idx) => ({
           id_pedido: String(o.id_pedido || o['ID Pedido'] || o.ID || ('PED-' + (idx + 1000))),
           data_hora: o.data_hora || o['Data/Hora'] || new Date().toISOString(),
@@ -507,8 +557,57 @@ const SheetsService = {
       }
       return result.data;
     } else {
-      throw new Error(result.error || "Estrutura de dados retornada pelo Google Sheets inválida.");
+      throw new Error(result?.error || result?.message || "Estrutura de dados retornada pelo Google Sheets inválida.");
     }
+  },
+
+  // Fallbacks inteligentes de fotos para itens que não possuem URL de imagem na planilha
+  getProductPhotoFallback(nome, categoria) {
+    const text = (nome + ' ' + categoria).toLowerCase();
+    if (text.includes('morango') || text.includes('fruta')) {
+      return 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=600&q=80';
+    }
+    if (text.includes('maracujá') || text.includes('maracuja')) {
+      return 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=600&q=80';
+    }
+    if (text.includes('oreo') || text.includes('biscoito') || text.includes('cookie')) {
+      return 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?auto=format&fit=crop&w=600&q=80';
+    }
+    if (text.includes('bolo') || text.includes('red velvet') || text.includes('pote') || text.includes('sobremesa')) {
+      return 'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=600&q=80';
+    }
+    if (text.includes('combo') || text.includes('kit') || text.includes('degusta')) {
+      return 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=600&q=80';
+    }
+    if (text.includes('bebida') || text.includes('suco') || text.includes('refres')) {
+      return 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80';
+  },
+
+  getCategoryIconFallback(nome) {
+    const n = (nome || '').toLowerCase();
+    if (n.includes('chup') || n.includes('gelad') || n.includes('sacol') || n.includes('gourmet')) return '🍦';
+    if (n.includes('bolo')) return '🍰';
+    if (n.includes('pote') || n.includes('sobremesa')) return '🍨';
+    if (n.includes('combo') || n.includes('kit')) return '🎁';
+    if (n.includes('fit') || n.includes('zero')) return '🍓';
+    if (n.includes('bebida') || n.includes('suco')) return '🥤';
+    return '🍧';
+  },
+
+  getCategoryPhotoFallback(nome) {
+    const n = (nome || '').toLowerCase();
+    if (n.includes('chup') || n.includes('gelad')) {
+      return 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=300&q=80';
+    }
+    if (n.includes('bolo')) {
+      return 'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=300&q=80';
+    }
+    if (n.includes('combo') || n.includes('kit')) {
+      return 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=300&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=300&q=80';
   }
 };
 
